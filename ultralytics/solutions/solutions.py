@@ -102,14 +102,21 @@ class BaseSolution:
         self.r_s = None
         self.frame_no = -1  # Only for logging
 
-        self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
         self.region = self.CFG["region"]  # Store region data for other classes usage
         self.line_width = self.CFG["line_width"]
 
         # Load Model and store additional information (classes, show_conf, show_label)
         if self.CFG["model"] is None:
             self.CFG["model"] = "yolo11n.pt"
-        self.model = YOLO(self.CFG["model"])
+        # Accept either a model path string or a pre-loaded YOLO instance
+        # This allows callers to pass a cached YOLO model to avoid repeated loading
+        model_cfg = self.CFG["model"]
+        if isinstance(model_cfg, str):
+            self.model = YOLO(model_cfg)
+            self.LOGGER.info(f"Ultralytics Solutions: ✅ {self.CFG}")
+        else:
+            # Assume it's already a YOLO instance
+            self.model = model_cfg
         self.names = self.model.names
         self.classes = self.CFG["classes"]
         self.show_conf = self.CFG["show_conf"]
